@@ -18,7 +18,11 @@ public class UserController {
     private final UserService userService;
 
     // 회원 생성
-
+    @PostMapping
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
+        User savedUser = userService.save(userRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+    }
 
 
 
