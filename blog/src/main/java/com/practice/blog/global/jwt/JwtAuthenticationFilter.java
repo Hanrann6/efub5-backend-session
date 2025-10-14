@@ -13,17 +13,33 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
 
     private static final String BEARER = "Bearer ";
     private static final String HEADER = "Authorization";
 
-    /**
-     * JWT 인증 필터
-     *
-     * HTTP 요청을 가로채 JWT 토큰을 검사하고, 유효한 경우 인증 정보를 설정
-     */
+    // jwt 인증 필터
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        // Authorization 키 값 조회
+        String authorizationHeader = request.getHeader(HEADER);
+
+        // Bearer 접두사를 제거해 토큰 추출
+        String token = getAccessToken(authorizationHeader);
+
+        // 토큰이 유효한 경우 인증 정보를 설정
+        if(!ObjectUtils.isEmpty(token) && tokenProvider.isValidToken(token)){
+            Authentication authentication = tokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+
+        // 다음 필터로 요청과 응답 전달
+        filterChain.doFilter(request, response);
+    }
+
 
 
     /**

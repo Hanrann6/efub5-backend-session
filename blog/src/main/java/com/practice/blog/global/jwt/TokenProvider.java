@@ -22,39 +22,59 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class TokenProvider {
 
-    // application.yml에 저장한 jwt값 가져오기
+    // application.yml jwt값
+    @Value("${jwt.secretKey}")
+    private String secretKey;
 
-    // 토큰 만료시간 설정
+    // 토큰 만료시간
+    private static Long accessTokenExpiration = 1000*60*60L; // 1시간 = 1000(ms->s) * 60(s->m) * 60(m->h)
+    private static Long refreshTokenExpiration = 1000*60*60*25*14L; // 2주 = 1000(ms->s) * 60(s->m) * 60(m->h) * 24(h->하루) * 14(2주)
 
 
-    // 토큰에 포함할 기본 정보와 클레임 키값 설정
+
+    // 토큰에 포함할 기본 정보, 클레임 키값
     private static final String AUTH_CLAIM = "auth";
 
     private final AccountsRepository accountsRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
-    /**
-     * AccessToken 생성 메소드
-     * 사용자 이메일 정보를 포함해 AccessToken 생성
-     */
+    // access token 생성
+    public String createAccessToken(Account account){
+        Date now = new Date();
+        return Jwts.builder()
+                // 헤더
+                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                // 내용
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + accessTokenExpiration))
+                .setSubject(account.getEmail())
+                // 서명
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+    }
+
+    // refresh token 생성
+    public String createRefreshToken(Account account){
+        Date now = new Date();
+        return Jwts.builder()
+                // 헤더
+                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                // 내용
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + refreshTokenExpiration))
+                .setSubject(account.getEmail())
+                // 서명
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+    }
+
+    // redis에 refresh token 저장
+    public void saveRefreshToken(Long userId, String refreshToken){
+        redisTemplate.opsForValue().set(userId.toString(),refreshToken, Duration.ofMillis(refreshTokenExpiration));
+    }
 
 
-    /**
-     * RefreshToken 생성 메소드
-     */
-
-
-    /**
-     * Redis에 리프레시 토큰을 저장하는 메소드
-     * key: 사용자 ID, alue: 리프레시 토큰
-     * 리프레시토큰 만료 시간(refreshTokenExpiration)을 만료시간으로 정해 자동으로 삭제되도록 설정
-     */
-
-
-    /**
-     * AccessToken에서 email 추출
-     * 토큰이 유효한지 확인 후 이메일 클레임 값을 추출
-     */
+    // access token에서 email 추출
     public String extractEmail(String accessToken){
         if(isValidToken(accessToken)){
             return getClaims(accessToken).getSubject();
@@ -62,9 +82,7 @@ public class TokenProvider {
         return null;
     }
 
-    /**
-     * 유효한 토큰인지 검증
-     */
+    // 토큰 검증
     public boolean isValidToken(String token){
         try{
             // secretKey를 사용해 토큰 복호화
@@ -86,10 +104,7 @@ public class TokenProvider {
         return false;
     }
 
-    /**
-     * 토큰에서 사용자 인증 정보를 꺼내 반환
-     * JWT 토큰의 클레임에서 사용자 이메일과 권한 정보를 추출하여 Authentication 객체를 생성
-     */
+    // token에서 사용자 인증 정보 반환
     public Authentication getAuthentication(String token){
         // 토큰 복호화
         Claims claims = getClaims(token);
@@ -102,9 +117,7 @@ public class TokenProvider {
                 .User(claims.getSubject(), "", authorities), token, authorities);
     }
 
-    /**
-     * 토큰을 복호화한 후 페이로드 반환
-     */
+    // payload 반환
     private Claims getClaims(String token){
         return Jwts.parser()
                 .setSigningKey(secretKey)
