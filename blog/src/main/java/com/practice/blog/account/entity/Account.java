@@ -3,7 +3,10 @@ package com.practice.blog.account.entity;
 import com.practice.blog.comment.domain.Comment;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +31,7 @@ public class Account {
     private String password;
 
     // 회원 닉네임
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private String nickname;
 
     // 회원 자기소개, default 값은 "안녕하세요!"
@@ -55,13 +58,5 @@ public class Account {
 
     public void changeStatus(AccountStatus status) {
         this.status = status;
-    }
-
-    public void updateNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public void setAccountId(Long accountId) {
-        this.accountId = accountId;
     }
 }

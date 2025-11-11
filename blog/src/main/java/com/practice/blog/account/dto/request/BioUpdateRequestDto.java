@@ -13,7 +13,4 @@ public class BioUpdateRequestDto {
     @NotBlank
     private String bio;
 
-    @NotBlank
-    private String nickname;
-
 }

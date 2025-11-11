@@ -10,6 +10,7 @@ import com.practice.blog.post.dto.request.PostCreateRequest;
 import com.practice.blog.post.dto.request.PostUpdateRequest;
 import com.practice.blog.post.dto.response.PostResponse;
 import com.practice.blog.post.dto.response.PostListResponse;
+import com.practice.blog.post.dto.response.PostSearchResponseDto;
 import com.practice.blog.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,9 @@ public class PostService {
                 .map(PostSummary::from).toList();
         return new PostListResponse(postSummaries, postRepository.count());
     }
+
+    // 검색
+
 
     @Transactional
     public void updatePostContent(Long postId, PostUpdateRequest request, Long accountId, String password) {

@@ -3,6 +3,7 @@ package com.practice.blog.post.controller;
 import com.practice.blog.post.dto.request.PostCreateRequest;
 import com.practice.blog.post.dto.request.PostUpdateRequest;
 import com.practice.blog.post.dto.response.PostResponse;
+import com.practice.blog.post.dto.response.PostSearchResponseDto;
 import com.practice.blog.post.dto.response.PostListResponse;
 import com.practice.blog.post.service.PostService;
 import jakarta.validation.Valid;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +32,9 @@ public class PostController {
     public ResponseEntity<PostListResponse> getAllPosts(){
         return ResponseEntity.ok(postService.getAllPosts());
     }
+
+    // 게시글 검색
+
 
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getPost(@PathVariable("id") Long id){
